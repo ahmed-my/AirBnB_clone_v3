@@ -1,0 +1,8 @@
+/home/vagrant/env/lib/python3.10/site-packages/pep8.py:110: FutureWarning: Possible nested set at position 1
+  EXTRANEOUS_WHITESPACE_REGEX = re.compile(r'[[({] | []}),;:]')
+.........................................ssss...............................................................
+----------------------------------------------------------------------
+Ran 108 tests in 1.710s
+
+OK (skipped=4)
+{'id': '03d70afc-31bc-4eeb-89a8-c4e985db0556', 'created_at': datetime.datetime(2024, 2, 22, 11, 10, 34, 791911), 'updated_at': datetime.datetime(2024, 2, 22, 11, 10, 34, 791911)}
