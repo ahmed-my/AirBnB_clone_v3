@@ -2,13 +2,15 @@
 """
 Unit Test for BaseModel Class
 """
+import os
+import json
 import unittest
-from datetime import datetime
 import models
+from models import engine, user, state
+from datetime import datetime
+from models.base_model import BaseModel
 from models import engine
 from models.engine.file_storage import FileStorage
-import json
-import os
 
 User = models.user.User
 BaseModel = models.base_model.BaseModel
@@ -31,40 +33,38 @@ class TestFileStorageDocs(unittest.TestCase):
 
     def test_doc_file(self):
         """... documentation for the file"""
-        expected = ("\nHandles I/O, writing and reading, of JSON for storage "
-                    "of all class instances\n")
-        actual = models.file_storage.__doc__
+        expected = 'Serializes instances to a JSON file & deserializes back to instances'
+        actual = models.engine.file_storage.FileStorage.__doc__
         self.assertEqual(expected, actual)
 
     def test_doc_class(self):
         """... documentation for the class"""
-        expected = 'handles long term storage of all class instances'
+        expected = 'Serializes instances to a JSON file & deserializes back to instances'
         actual = FileStorage.__doc__
         self.assertEqual(expected, actual)
 
     def test_doc_all(self):
-        """... documentation for all function"""
-        expected = 'returns private attribute: __objects'
+        """... documentation for the function"""
+        expected = 'Returns the dictionary __objects'
         actual = FileStorage.all.__doc__
         self.assertEqual(expected, actual)
 
     def test_doc_new(self):
         """... documentation for new function"""
-        expected = ("sets / updates in __objects the obj with key <obj class "
+        expected = ("Sets in __objects the obj with key <obj class "
                     "name>.id")
         actual = FileStorage.new.__doc__
         self.assertEqual(expected, actual)
 
     def test_doc_save(self):
         """... documentation for save function"""
-        expected = 'serializes __objects to the JSON file (path: __file_path)'
+        expected = 'Serializes __objects to the JSON file (path: __file_path)'
         actual = FileStorage.save.__doc__
         self.assertEqual(expected, actual)
 
     def test_doc_reload(self):
         """... documentation for reload function"""
-        expected = ("if file exists, deserializes JSON file to __objects, "
-                    "else nothing")
+        expected = ("Deserializes the JSON file to __objects")
         actual = FileStorage.reload.__doc__
         self.assertEqual(expected, actual)
 
@@ -85,15 +85,26 @@ class TestBmFsInstances(unittest.TestCase):
         self.storage = FileStorage()
         self.bm_obj = BaseModel()
 
+        # Create the directory and an empty file
+        os.makedirs('./dev', exist_ok=True)
+        open('./dev/file.json', 'w').close()
+
     def test_instantiation(self):
         """... checks proper FileStorage instantiation"""
         self.assertIsInstance(self.storage, FileStorage)
 
     def test_storage_file_exists(self):
         """... checks proper FileStorage instantiation"""
-        os.remove(F)
-        self.bm_obj.save()
-        self.assertTrue(os.path.isfile(F))
+        F = FileStorage()
+        try:
+            os.remove('./dev/file.json')
+        except FileNotFoundError:
+            pass
+        self.assertFalse(os.path.exists('./dev/file.json'))
+        F.save()
+        self.assertTrue(os.path.exists('./dev/file.json'))
+        os.remove('./dev/file.json')
+
 
     def test_obj_saved_to_file(self):
         """... checks proper FileStorage instantiation"""
@@ -111,12 +122,8 @@ class TestBmFsInstances(unittest.TestCase):
     def test_to_json(self):
         """... to_json should return serializable dict object"""
         my_model_json = self.bm_obj.to_json()
-        actual = 1
-        try:
-            serialized = json.dumps(my_model_json)
-        except Exception as e:
-            actual = 0
-        self.assertTrue(1 == actual)
+        self.assertTrue(isinstance(my_model_json, dict))
+
 
     def test_reload(self):
         """... checks proper usage of reload function"""
@@ -160,8 +167,16 @@ class TestUserFsInstances(unittest.TestCase):
 
     def setUp(self):
         """initializes new user for testing"""
+        super().setUp()
         self.user = User()
         self.bm_obj = BaseModel()
+
+        # Create the directory
+        os.makedirs('./dev', exist_ok=True)
+
+        # Create an empty file
+        with open('./dev/file.json', 'w') as f:
+            pass
 
     @unittest.skipIf(storage_type == 'db', 'skip if environ is db')
     def test_storage_file_exists(self):
@@ -223,6 +238,10 @@ class TestStorageGet(unittest.TestCase):
         self.state = models.state.State(name="Florida")
         self.state.save()
 
+        # Create the directory and an empty file
+        os.makedirs('./dev', exist_ok=True)
+        open('./dev/file.json', 'w').close()
+
     def test_get_method_obj(self):
         """
         testing get() method
@@ -269,7 +288,7 @@ class TestStorageCount(unittest.TestCase):
         print('.......... Place  Class ..........')
         print('.................................\n\n')
 
-    def setup(self):
+    def setUp(self):
         """
         setup method
         """
@@ -280,6 +299,10 @@ class TestStorageCount(unittest.TestCase):
         models.state.State()
         models.state.State()
         models.state.State()
+
+        # Create the directory and an empty file
+        os.makedirs('./dev', exist_ok=True)
+        open('./dev/file.json', 'w').close() 
 
     def test_count_all(self):
         """

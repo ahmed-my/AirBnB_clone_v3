@@ -32,11 +32,19 @@ class BaseModel:
             for key, value in kwargs.items():
                 if key != "__class__":
                     setattr(self, key, value)
-            if kwargs.get("created_at", None) and type(self.created_at) is str:
+            if kwargs.get(
+                    "created_at",
+                    None) and isinstance(
+                    self.created_at,
+                    str):
                 self.created_at = datetime.strptime(kwargs["created_at"], time)
             else:
                 self.created_at = datetime.utcnow()
-            if kwargs.get("updated_at", None) and type(self.updated_at) is str:
+            if kwargs.get(
+                    "updated_at",
+                    None) and isinstance(
+                    self.updated_at,
+                    str):
                 self.updated_at = datetime.strptime(kwargs["updated_at"], time)
             else:
                 self.updated_at = datetime.utcnow()
@@ -48,9 +56,18 @@ class BaseModel:
             self.updated_at = self.created_at
 
     def __str__(self):
-        """String representation of the BaseModel class"""
-        return "[{:s}] ({:s}) {}".format(self.__class__.__name__, self.id,
-                                         self.__dict__)
+        """String representation of the Base_model class"""
+        attributes = self.__dict__.copy()
+        attributes.pop('_sa_instance_state', None)
+        attributes.pop('password', None)
+        attributes['created_at'] = attributes['created_at'].strftime(
+            '%Y-%m-%dT%H:%M:%S.%f')
+        if 'updated_at' in attributes:
+            attributes['updated_at'] = attributes['updated_at'].strftime(
+                '%Y-%m-%dT%H:%M:%S.%f')
+        attributes['__class__'] = self.__class__.__name__
+        return "[{}] ({}) {}".format(
+            self.__class__.__name__, self.id, attributes)
 
     def save(self):
         """updates the attribute 'updated_at' with the current datetime"""
@@ -73,3 +90,9 @@ class BaseModel:
     def delete(self):
         """delete the current instance from the storage"""
         models.storage.delete(self)
+
+    def to_json(self):
+        """Converts the Base_model instance to a dictionary"""
+        json_dict = self.to_dict()
+        json_dict['__class__'] = 'BaseModel'
+        return json_dict
