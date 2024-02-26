@@ -2,8 +2,8 @@
 """
 Contains the FileStorage class
 """
-import json
 import os
+import json
 from models.amenity import Amenity
 from models.base_model import BaseModel
 from models.city import City
@@ -17,22 +17,19 @@ classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
 
 
 class FileStorage:
-    """Serializes instances to a JSON file & deserializes back to instances"""
+    """serializes instances to a JSON file & deserializes back to instances"""
 
-    # String - path to the JSON file
+    # string - path to the JSON file
     __file_path = "file.json"
-    # Dictionary - empty but will store all objects by <class name>.id
+    # dictionary - empty but will store all objects by <class name>.id
     __objects = {}
 
     def all(self, cls=None):
-        """Returns the dictionary __objects"""
-        if cls is not None:
-            new_dict = {}
-            for key, value in self.__objects.items():
-                if cls == value.__class__ or cls == value.__class__.__name__:
-                    new_dict[key] = value
-            return new_dict
-        return self.__objects
+        """Returns a dictionary of models currently in storage."""
+        if cls:
+            return {k: v for k, v in self.__objects.items() if isinstance(v, cls)}
+        else:
+            return self.__objects 
 
     def new(self, obj):
         """Sets in __objects the obj with key <obj class name>.id"""
@@ -41,37 +38,45 @@ class FileStorage:
             self.__objects[key] = obj
 
     def get(self, cls, id):
-        """Gets a specific object"""
+        """
+        Gets a specific object by class and id
+        :param cls: class
+        :param id: id of instance
+        :return: object or None
+        """
         all_class = self.all(cls)
-
-        for obj in all_class.values():
-            if id == str(obj.id):
-                return obj
-
-        return None
+        return next((obj for obj in all_class.values()
+                    if id == str(obj.id)), None)
 
     def count(self, cls=None):
-        """Count of instances"""
+        """
+        Count of instances
+        :param cls: class
+        :return: number of instances
+        """
         return len(self.all(cls))
 
     def save(self):
-        """Serializes __objects to the JSON file (path: __file_path)"""
-        json_objects = {}
-        for key in self.__objects:
-            json_objects[key] = self.__objects[key].to_dict()
+        """Serialize __objects to the JSON file (path: __file_path)"""
+        serialized_objects = {}
+    
+        for key, value in self.__objects.items():
+            serialized_objects[key] = value.to_dict()
 
-        file_path = os.path.abspath(self.__file_path)
-        with open(file_path, 'w') as f:
-            json.dump(json_objects, f)
+        with open(self.__file_path, mode='w', encoding='utf-8') as f:
+            json.dump(serialized_objects, f, indent=4)
 
     def reload(self):
         """Deserializes the JSON file to __objects"""
         try:
-            file_path = os.path.abspath(self.__file_path)
-            with open(file_path, 'r') as f:
+            with open(self.__file_path, 'r') as f:
                 jo = json.load(f)
-            for key in jo:
-                self.__objects[key] = classes.get(jo[key]["__class__"])(**jo[key])
+            for key, data in jo.items():
+                class_name = data.get("__class__", "BaseModel")
+                cls = classes.get(class_name, BaseModel)
+                self.__objects[key] = cls(**data)
+        except FileNotFoundError:
+            pass  # File doesn't exist, ignore
         except Exception as e:
             print(f"Error during reload: {e}")
 
@@ -85,4 +90,3 @@ class FileStorage:
     def close(self):
         """Call reload() method for deserializing the JSON file to objects"""
         self.reload()
-
