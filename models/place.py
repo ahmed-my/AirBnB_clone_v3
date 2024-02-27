@@ -20,7 +20,7 @@ if models.storage_t == 'db':
 
 
 class Place(BaseModel, Base):
-    """Place class handles all application places"""
+    """Representation of Place """
     if models.storage_t == 'db':
         __tablename__ = 'places'
         city_id = Column(String(60), ForeignKey('cities.id'), nullable=False)
@@ -76,23 +76,3 @@ class Place(BaseModel, Base):
                 if amenity.place_id == self.id:
                     amenity_list.append(amenity)
             return amenity_list
-    
-    def to_json(self):
-        """Converts the Place instance to a dictionary"""
-        json_dict = self.to_dict()
-        json_dict['__class__'] = 'Place'
-        return json_dict
-
-    def __str__(self):
-        """String representation of the Place class"""
-        attributes = self.__dict__.copy()
-        attributes.pop('_sa_instance_state', None)  # Remove SQLAlchemy state
-        attributes.pop('password', None)  # Remove password if it exists
-        attributes['created_at'] = attributes['created_at'].strftime('%Y-%m-%dT%H:%M:%S.%f')
-
-        # Remove 'updated_at' if it exists and is not None
-        attributes.pop('updated_at', None)
-
-        attributes['__class__'] = self.__class__.__name__
-        return "[{}] ({}) {}".format(self.__class__.__name__, self.id, attributes)
-
