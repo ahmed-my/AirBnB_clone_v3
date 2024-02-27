@@ -41,3 +41,4 @@ class City(BaseModel, Base):
 
         attributes['__class__'] = self.__class__.__name__
         return "[{}] ({}) {}".format(self.__class__.__name__, self.id, attributes)
+

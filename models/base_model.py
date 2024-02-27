@@ -96,3 +96,4 @@ class BaseModel:
         json_dict = self.to_dict()
         json_dict['__class__'] = 'BaseModel'
         return json_dict
+
